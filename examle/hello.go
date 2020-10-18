@@ -1,39 +1,3 @@
-// package main
-
-// import (
-// 	"net/http"
-// )
-
-// // func main() {
-// // 	fmt.Println("Hello World")
-// // 	var x int
-// // 	x = 2 * 4
-// // 	fmt.Println(x)
-
-// // 	y := 45
-// // 	z := 3
-// // 	sum := y + z
-// // 	fmt.Println(sum)
-
-// // 	a := [5]int{1, 2, 3, 4, 7}
-// // 	a[2] = 2
-// // 	b := []int{2, 3, 1, 6}
-// // 	b = append(b, 13)
-// // 	fmt.Println(b)
-// // 	k := summ(2, 3)
-// // 	fmt.Println(k)
-// // }
-
-// // func summ(x int, y int) int {
-// // 	return x + y
-// // }
-// func main() {
-// 	http.HandleFunc("/hello-world", func(w http.ResponseWriter, r *http.Request) {
-// 		w.Write([]byte("hello world"))
-// 	})
-// 	http.ListenAndServe(":8080", nil)
-// }
-
 package main
 
 import (
@@ -63,6 +27,15 @@ type part struct {
 }
 
 type allMeet []meeting
+type allPart []part
+
+var parts = allPart{
+	{
+		Name:  "Sayak",
+		Email: "abc.sayak@gmail.com",
+		RSVP:  "Yes",
+	},
+}
 
 var meets = allMeet{
 	{
@@ -101,6 +74,26 @@ func getOneMeet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getAllMeets(w http.ResponseWriter, r *http.Request) {
+	meetStart := mux.Vars(r)["startTime"]
+	meetEnd := mux.Vars(r)["endTime"]
+	layout := "0001-01-01T00:00:00Z"
+	tstart, err := time.Parse(layout, meetStart)
+	tend, err := time.Parse(layout, meetEnd)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, singleMeet := range meets {
+		if singleMeet.StartTime == tstart && singleMeet.EndTime == tend {
+			json.NewEncoder(w).Encode(singleMeet)
+		}
+	}
+}
+
+func allMeetPart(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func homeLink(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to meeting scheduler!")
 }
@@ -111,5 +104,8 @@ func main() {
 	router.HandleFunc("/", homeLink)
 	router.HandleFunc("/meetings", createSchedule).Methods("POST")
 	router.HandleFunc("/meeting/{id}", getOneMeet).Methods("GET")
+	router.HandleFunc("/meetings?start={startTime}&end={endTime}", getAllMeets).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
+
+// http://localhost:8080/meetings?meetings?start=2020-11-14T10:45:16Z&end=2020-11-15T10:45:16Z
